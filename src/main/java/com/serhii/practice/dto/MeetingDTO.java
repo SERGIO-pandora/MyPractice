@@ -5,6 +5,8 @@ import java.time.LocalDate;
 
 public class MeetingDTO {
 
+    private Long id;
+
     @NotNull
     @Size(min = 2, max = 100, message = "Candidate name must be between 2 and 100 characters")
     private String candidateName;
@@ -25,6 +27,15 @@ public class MeetingDTO {
     @NotNull
     @Size(min = 2, max = 100, message = "Meeting location must be between 2 and 100 characters")
     private String meetingLocation;
+
+    // Геттер і сеттер для поля id
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getCandidateName() {
         return candidateName;

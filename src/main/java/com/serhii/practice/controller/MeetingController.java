@@ -4,14 +4,15 @@ import com.serhii.practice.dto.MeetingDTO;
 import com.serhii.practice.service.MeetingService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.DayOfWeek;
+import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/meetings")
+@Validated
 public class MeetingController {
     private final MeetingService service;
 
@@ -26,26 +27,35 @@ public class MeetingController {
 
     @GetMapping("/{id}")
     public ResponseEntity<MeetingDTO> getMeetingById(@PathVariable Long id) {
-        return ResponseEntity.ok(service.findDTOById(id));
+        MeetingDTO meeting = service.findDTOById(id);
+        if (meeting == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(meeting);
     }
 
     @PostMapping
     public ResponseEntity<MeetingDTO> createMeeting(@Valid @RequestBody MeetingDTO meetingDTO) {
-        return ResponseEntity.status(201).body(service.saveDTO(meetingDTO));
+        MeetingDTO createdMeeting = service.saveDTO(meetingDTO);
+        return ResponseEntity.created(URI.create("/api/meetings/" + createdMeeting.getId()))
+                .body(createdMeeting);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<MeetingDTO> updateMeeting(@PathVariable Long id, @Valid @RequestBody MeetingDTO meetingDTO) {
+        MeetingDTO existingMeeting = service.findDTOById(id);
+        if (existingMeeting == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(service.updateDTO(id, meetingDTO));
-    }
-
-    @GetMapping("/schedule")
-    public Map<DayOfWeek, List<MeetingDTO>> getScheduleGroupedByDayOfWeek() {
-        return service.getScheduleGroupedByDayOfWeek();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMeeting(@PathVariable Long id) {
+        MeetingDTO meeting = service.findDTOById(id);
+        if (meeting == null) {
+            return ResponseEntity.notFound().build();
+        }
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
