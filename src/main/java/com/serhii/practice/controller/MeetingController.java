@@ -1,11 +1,14 @@
 package com.serhii.practice.controller;
 
-import com.serhii.practice.Meeting;
+import com.serhii.practice.dto.MeetingDTO;
 import com.serhii.practice.service.MeetingService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.DayOfWeek;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/meetings")
@@ -17,29 +20,28 @@ public class MeetingController {
     }
 
     @GetMapping
-    public List<Meeting> getAllMeetings() {
-        return service.findAll();
+    public List<MeetingDTO> getAllMeetings() {
+        return service.findAllDTOs();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Meeting> getMeetingById(@PathVariable Long id) {
-        return ResponseEntity.ok(service.findById(id));
+    public ResponseEntity<MeetingDTO> getMeetingById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.findDTOById(id));
     }
 
     @PostMapping
-    public Meeting createMeeting(@RequestBody Meeting meeting) {
-        return service.save(meeting);
+    public ResponseEntity<MeetingDTO> createMeeting(@Valid @RequestBody MeetingDTO meetingDTO) {
+        return ResponseEntity.status(201).body(service.saveDTO(meetingDTO));
     }
 
     @PutMapping("/{id}")
-    public Meeting updateMeeting(@PathVariable Long id, @RequestBody Meeting meeting) {
-        Meeting existingMeeting = service.findById(id);
-        existingMeeting.setCandidateName(meeting.getCandidateName());
-        existingMeeting.setMeetingNumberInDay(meeting.getMeetingNumberInDay());
-        existingMeeting.setMeetingDate(meeting.getMeetingDate());
-        existingMeeting.setCandidateSpecialization(meeting.getCandidateSpecialization());
-        existingMeeting.setMeetingLocation(meeting.getMeetingLocation());
-        return service.save(existingMeeting);
+    public ResponseEntity<MeetingDTO> updateMeeting(@PathVariable Long id, @Valid @RequestBody MeetingDTO meetingDTO) {
+        return ResponseEntity.ok(service.updateDTO(id, meetingDTO));
+    }
+
+    @GetMapping("/schedule")
+    public Map<DayOfWeek, List<MeetingDTO>> getScheduleGroupedByDayOfWeek() {
+        return service.getScheduleGroupedByDayOfWeek();
     }
 
     @DeleteMapping("/{id}")
