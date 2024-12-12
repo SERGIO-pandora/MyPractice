@@ -20,6 +20,7 @@ public class MeetingService {
 
     private MeetingDTO toDTO(Meeting meeting) {
         MeetingDTO dto = new MeetingDTO();
+        dto.setId(meeting.getId()); // Добавлено присвоение значения ID
         dto.setCandidateName(meeting.getCandidateName());
         dto.setMeetingNumberInDay(meeting.getMeetingNumberInDay());
         dto.setMeetingDate(meeting.getMeetingDate());
