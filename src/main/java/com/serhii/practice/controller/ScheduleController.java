@@ -2,17 +2,17 @@ package com.serhii.practice.controller;
 
 import com.serhii.practice.dto.MeetingDTO;
 import com.serhii.practice.service.MeetingService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/schedule")
+@Controller
+@RequestMapping("/schedule")
 public class ScheduleController {
 
     private final MeetingService meetingService;
@@ -21,15 +21,12 @@ public class ScheduleController {
         this.meetingService = meetingService;
     }
 
-    @GetMapping
-    public ResponseEntity<Map<DayOfWeek, List<MeetingDTO>>> getScheduleGroupedByDayOfWeek() {
+
+    @GetMapping("/page")
+    public String schedulePage(Model model) {
         Map<DayOfWeek, List<MeetingDTO>> schedule = meetingService.getScheduleGroupedByDayOfWeek();
-        return ResponseEntity.ok(schedule);
+        model.addAttribute("schedule", schedule);
+        return "schedule";
     }
 
-    @PostMapping
-    public ResponseEntity<MeetingDTO> createMeeting(@RequestBody @Valid MeetingDTO meetingDTO) {
-        MeetingDTO createdMeeting = meetingService.saveDTO(meetingDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdMeeting);
-    }
 }
