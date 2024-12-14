@@ -28,7 +28,6 @@ public class MeetingDTO {
     @Size(min = 2, max = 100, message = "Meeting location must be between 2 and 100 characters")
     private String meetingLocation;
 
-    // Геттер і сеттер для поля id
     public Long getId() {
         return id;
     }

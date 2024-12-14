@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/dashboard_style.css">
+    <title>Панель Адміністратора</title>
+</head>
+<body>
+<h1>Панель Адміністратора</h1>
+<a href="/admin" id="adminLink"></a>
+<div id="tokenInfo" style="margin-top: 20px; color: green;"></div>
+<div id="meetings" style="margin-top: 20px;"></div>
+
+<button id="addMeetingButton" onclick="openAddMeetingForm()">Додати зустріч</button>
+
+<div id="addMeetingForm" style="display: none;">
+    <h3>Додати нову зустріч</h3>
+    <form id="meetingForm">
+        <label for="candidateName">Ім'я кандидата:</label>
+        <input type="text" id="candidateName" required><br>
+
+        <label for="meetingNumberInDay">Номер зустрічі в день:</label>
+        <input type="number" id="meetingNumberInDay" required><br>
+
+        <label for="meetingDate">Дата зустрічі:</label>
+        <input type="date" id="meetingDate" required><br>
+
+        <label for="candidateSpecialization">Спеціалізація кандидата:</label>
+        <input type="text" id="candidateSpecialization" required><br>
+
+        <label for="meetingLocation">Місце проведення зустрічі:</label>
+        <input type="text" id="meetingLocation" required><br>
+
+        <button type="submit">Зберегти</button>
+        <button type="button" onclick="closeAddMeetingForm()">Скасувати</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem('token');
+
+        if (token) {
+            console.log('Токен:', token);
+            document.getElementById('tokenInfo').textContent = `Токен: ${token}`;
+
+            fetchMeetings(token);
+        } else {
+            console.warn('Токен не знайдено в localStorage');
+            document.getElementById('tokenInfo').textContent = 'Токен не знайдено. Будь ласка, увійдіть.';
+        }
+    });
+
+    async function fetchMeetings(token) {
+        try {
+            const response = await fetch('/api/meetings', {
+                method: 'GET',
+                headers: {
+                    'Authorization': token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Помилка при завантаженні зустрічей: ${response.statusText}`);
+            }
+
+            const meetings = await response.json();
+            console.log('Зустрічі:', meetings);
+
+            const meetingsDiv = document.getElementById('meetings');
+            meetingsDiv.innerHTML = '<h2>Зустрічі</h2>' +
+                meetings.map(meeting => `
+                    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                        <p><strong>Ім'я кандидата:</strong> ${meeting.candidateName}</p>
+                        <p><strong>Номер зустрічі в день:</strong> ${meeting.meetingNumberInDay}</p>
+                        <p><strong>Дата зустрічі:</strong> ${meeting.meetingDate}</p>
+                        <p><strong>Спеціалізація:</strong> ${meeting.candidateSpecialization}</p>
+                        <p><strong>Місце:</strong> ${meeting.meetingLocation}</p>
+                        <button onclick="deleteMeeting(${meeting.id})">Видалити</button>
+                    </div>
+                `).join('');
+        } catch (error) {
+            console.error(error);
+            document.getElementById('meetings').textContent = 'Не вдалося завантажити зустрічі.';
+        }
+    }
+
+    function openAddMeetingForm() {
+        document.getElementById('addMeetingForm').style.display = 'block';
+    }
+
+    function closeAddMeetingForm() {
+        document.getElementById('addMeetingForm').style.display = 'none';
+    }
+
+    document.getElementById('meetingForm')?.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const token = localStorage.getItem('token');
+        const meetingData = {
+            candidateName: document.getElementById('candidateName').value,
+            meetingNumberInDay: document.getElementById('meetingNumberInDay').value,
+            meetingDate: document.getElementById('meetingDate').value,
+            candidateSpecialization: document.getElementById('candidateSpecialization').value,
+            meetingLocation: document.getElementById('meetingLocation').value
+        };
+
+        try {
+            const response = await fetch('/api/meetings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify(meetingData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Помилка при додаванні зустрічі: ${response.statusText}`);
+            }
+
+            const newMeeting = await response.json();
+            fetchMeetings(token);
+            closeAddMeetingForm();
+        } catch (error) {
+            console.error(error);
+            alert('Не вдалося додати зустріч');
+        }
+    });
+
+    async function deleteMeeting(meetingId) {
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`/api/meetings/${meetingId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Помилка при видаленні зустрічі: ${response.statusText}`);
+            }
+
+            fetchMeetings(token);
+        } catch (error) {
+            console.error(error);
+            alert('Не вдалося видалити зустріч');
+        }
+    }
+</script>
+</body>
+</html>

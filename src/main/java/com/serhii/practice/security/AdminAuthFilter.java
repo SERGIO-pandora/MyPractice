@@ -22,17 +22,18 @@ public class AdminAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        if (path.startsWith("/api/meetings")) {
+        if (path.startsWith("/admin")) {
             String authHeader = request.getHeader("Authorization");
 
-            if (authHeader == null) {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Unauthorized: Token is missing");
+                response.getWriter().write("Unauthorized: Token is missing or incorrect format");
                 return;
             }
 
             try {
-                String decodedToken = new String(Base64.getDecoder().decode(authHeader));
+                String token = authHeader.substring(7);
+                String decodedToken = new String(Base64.getDecoder().decode(token));
                 String[] parts = decodedToken.split(":");
                 String username = parts[0];
                 long expirationTime = Long.parseLong(parts[1]);
